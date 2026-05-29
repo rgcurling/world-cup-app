@@ -83,16 +83,21 @@ app.get('/api/match/:id', async (req, res) => {
     const cached = matchCache.get(id);
     if (cached) return res.json(cached);
 
-    const [fixtureArr, events, lineups, stats] = await Promise.all([
+    const [fixtureArr, events, lineups, stats, predictions, injuries] = await Promise.all([
       football.getMatch(id),
       football.getEvents(id),
       football.getLineups(id),
       football.getStats(id),
+      football.getPredictions(id),
+      football.getInjuries(id),
     ]);
 
     if (!fixtureArr.length) return res.status(404).json({ error: 'Match not found' });
 
     const match = football.normalizeFixture(fixtureArr[0]);
+
+    // H2H needs team IDs from the fixture so runs after
+    const h2h = await football.getH2H(match.home_team_id, match.away_team_id);
 
     let analysis = null;
     if (match.status === 'live' || match.status === 'finished') {
@@ -100,11 +105,10 @@ app.get('/api/match/:id', async (req, res) => {
         analysis = await claude.analyzeMatch(match, events, stats);
       } catch (e) {
         console.error('[Claude]', e.message);
-        // non-fatal -- return match data without analysis
       }
     }
 
-    const result = { match, events, lineups, stats, analysis };
+    const result = { match, events, lineups, stats, analysis, predictions, injuries, h2h };
     matchCache.set(id, result);
     res.json(result);
   } catch (err) {
@@ -142,13 +146,55 @@ app.get('/api/standings', async (req, res) => {
   try {
     const cached = standingsCache.get('standings');
     if (cached) return res.json(cached);
-
     const standings = await football.getStandings();
     standingsCache.set('standings', standings);
     res.json(standings);
   } catch (err) {
     console.error('[/api/standings]', err.message);
     res.status(500).json({ error: 'Failed to fetch standings' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/match/:id/players -- player ratings (loaded on demand)
+// ---------------------------------------------------------------------------
+const playersCache = makeCache(60 * 1000);
+
+app.get('/api/match/:id/players', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid match ID' });
+
+  try {
+    const cached = playersCache.get(id);
+    if (cached) return res.json(cached);
+    const players = await football.getPlayerRatings(id);
+    playersCache.set(id, players);
+    res.json(players);
+  } catch (err) {
+    console.error(`[/api/match/${id}/players]`, err.message);
+    res.status(500).json({ error: 'Failed to fetch player ratings' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/topscorers -- top scorers + top assists (30-min cache)
+// ---------------------------------------------------------------------------
+const scorersCache = makeCache(30 * 60 * 1000);
+
+app.get('/api/topscorers', async (req, res) => {
+  try {
+    const cached = scorersCache.get('topscorers');
+    if (cached) return res.json(cached);
+    const [scorers, assists] = await Promise.all([
+      football.getTopScorers(),
+      football.getTopAssists(),
+    ]);
+    const result = { scorers, assists };
+    scorersCache.set('topscorers', result);
+    res.json(result);
+  } catch (err) {
+    console.error('[/api/topscorers]', err.message);
+    res.status(500).json({ error: 'Failed to fetch top scorers' });
   }
 });
 
