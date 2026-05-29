@@ -43,13 +43,13 @@ class FootballService {
     };
   }
 
-  async getSchedule()    { return this._get('/fixtures', { league: 1, season: 2026 }); }
-  async getLiveMatches() { return this._get('/fixtures', { league: 1, season: 2026, live: 'all' }); }
+  async getSchedule()    { return this._get('/fixtures', { league: 1, season: process.env.WC_SEASON || 2026 }); }
+  async getLiveMatches() { return this._get('/fixtures', { league: 1, season: process.env.WC_SEASON || 2026, live: 'all' }); }
   async getMatch(id)     { return this._get('/fixtures', { id }); }
   async getEvents(id)    { return this._get('/fixtures/events',     { fixture: id }); }
   async getLineups(id)   { return this._get('/fixtures/lineups',    { fixture: id }); }
   async getStats(id)     { return this._get('/fixtures/statistics', { fixture: id }); }
-  async getStandings()   { return this._get('/standings', { league: 1, season: 2026 }); }
+  async getStandings()   { return this._get('/standings', { league: 1, season: process.env.WC_SEASON || 2026 }); }
 }
 
 module.exports = FootballService;
