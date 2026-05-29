@@ -159,6 +159,28 @@ app.get('/health', (_req, res) =>
   res.json({ status: 'ok', ts: new Date().toISOString() }),
 );
 
+// Temporary debug -- shows raw api-football response to diagnose empty fixtures
+app.get('/api/debug', async (req, res) => {
+  try {
+    const axios  = require('axios');
+    const league = req.query.league || 1;
+    const season = req.query.season || 2026;
+    const result = await axios.get('https://v3.football.api-sports.io/fixtures', {
+      params:  { league, season },
+      headers: { 'x-apisports-key': process.env.API_SPORTS_KEY },
+      timeout: 10000,
+    });
+    res.json({
+      errors:  result.data.errors,
+      results: result.data.results,
+      paging:  result.data.paging,
+      sample:  result.data.response?.slice(0, 2),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve React PWA in production
 if (process.env.NODE_ENV === 'production') {
   const clientDist = path.join(__dirname, '..', 'client', 'dist');
