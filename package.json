@@ -1,14 +1,12 @@
 {
   "name": "kickoffai",
   "version": "1.0.0",
-  "description": "World Cup 2026 match tracker with AI commentary and push notifications",
-  "main": "src/index.js",
+  "description": "World Cup 2026 match tracker with AI commentary",
+  "main": "server/index.js",
   "scripts": {
-    "start":   "node src/index.js",
-    "dev":     "nodemon src/index.js",
-    "migrate": "node src/db/migrate.js",
-    "build":   "cd client && npm install && npm run build",
-    "vapid":   "node scripts/generate-vapid.js"
+    "start": "node server/index.js",
+    "dev":   "nodemon server/index.js",
+    "build": "cd client && npm install && npm run build"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -18,10 +16,7 @@
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^4.21.2",
-    "node-cron": "^4.2.1",
-    "pg": "^8.14.1",
-    "web-push": "^3.6.7"
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
