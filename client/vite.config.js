@@ -12,4 +12,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  define: {
+    __API_URL__: JSON.stringify(
+      process.env.NODE_ENV === 'production'
+        ? 'https://world-cup-app-production-4578.up.railway.app'
+        : '',
+    ),
+  },
 });

@@ -5,15 +5,13 @@ import { formatKickoff } from '../utils/time.js';
 function TeamLogo({ src, name }) {
   const [err, setErr] = useState(false);
   if (!src || err) {
-    return (
-      <div className="team-logo-fallback">{name?.[0] ?? '?'}</div>
-    );
+    return <div className="team-logo-fallback">{name?.[0] ?? '?'}</div>;
   }
   return <img className="team-logo" src={src} alt={name} onError={() => setErr(true)} />;
 }
 
 function ScoreDigit({ value }) {
-  const prev    = useRef(value);
+  const prev  = useRef(value);
   const [flash, setFlash] = useState(false);
 
   useEffect(() => {
@@ -31,33 +29,31 @@ function ScoreDigit({ value }) {
 
 export default function MatchCard({ match }) {
   const navigate = useNavigate();
-  const { fixture_id, home_team, away_team, home_score, away_score,
-          status, kickoff_utc, round, group_name,
-          home_logo_url, away_logo_url } = match;
+  const { id, home_team, away_team, home_logo, away_logo,
+          home_score, away_score, status, kickoff, round, group } = match;
 
-  const context = [group_name, round].filter(Boolean).join(' · ');
+  const context = [group, round].filter(Boolean).join(' · ');
   const isLive  = status === 'live';
   const isFT    = status === 'finished';
 
   return (
-    <div className="match-card fade-in" onClick={() => navigate(`/match/${fixture_id}`)}>
+    <div className="match-card fade-in" onClick={() => navigate(`/match/${id}`)}>
       <div className="match-card-meta">
         <span className="match-card-context">{context}</span>
         {isLive && (
           <span className="status-badge live">
-            <span className="live-dot" />
-            LIVE
+            <span className="live-dot" />LIVE
           </span>
         )}
-        {isFT && <span className="status-badge finished">FT</span>}
+        {isFT  && <span className="status-badge finished">FT</span>}
         {!isLive && !isFT && (
-          <span className="status-badge scheduled">{formatKickoff(kickoff_utc)}</span>
+          <span className="status-badge scheduled">{formatKickoff(kickoff)}</span>
         )}
       </div>
 
       <div className="match-card-teams">
         <div className="team">
-          <TeamLogo src={home_logo_url} name={home_team} />
+          <TeamLogo src={home_logo} name={home_team} />
           <span className="team-name">{home_team}</span>
         </div>
 
@@ -74,7 +70,7 @@ export default function MatchCard({ match }) {
         </div>
 
         <div className="team">
-          <TeamLogo src={away_logo_url} name={away_team} />
+          <TeamLogo src={away_logo} name={away_team} />
           <span className="team-name">{away_team}</span>
         </div>
       </div>

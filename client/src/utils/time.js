@@ -34,7 +34,7 @@ export function formatRelative(utcStr) {
 export function groupByDate(matches) {
   const map = new Map();
   for (const m of matches) {
-    const key = new Date(m.kickoff_utc).toDateString();
+    const key = new Date(m.kickoff).toDateString();
     if (!map.has(key)) map.set(key, []);
     map.get(key).push(m);
   }
