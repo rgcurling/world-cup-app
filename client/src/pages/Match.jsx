@@ -181,7 +181,7 @@ function PlayersTab({ fixtureId }) {
   }, [fixtureId]);
 
   if (loading) return <div className="loading-state"><div className="spinner" /></div>;
-  if (!players?.length) return <div className="empty-state">Player ratings are available once the match starts.</div>;
+  if (!players?.length) return <div className="empty-state">Player ratings are not available for this match. They require an upgraded API plan.</div>;
 
   const byTeam = players.reduce((acc, p) => {
     const team = p.statistics[0]?.team;
@@ -287,9 +287,13 @@ function VenuesTab() {
 // ---------------------------------------------------------------------------
 function PredictionWidget({ predictions }) {
   if (!predictions?.length) return null;
-  const p = predictions[0];
+  const p   = predictions[0];
   const pct = p.predictions?.percent;
+  const advice = p.predictions?.advice ?? '';
+  // Hide widget when the API has no real data (all equal or explicit "no data" message)
   if (!pct) return null;
+  if (advice.toLowerCase().includes('no prediction')) return null;
+  if (pct.home === pct.draw && pct.draw === pct.away) return null;
   return (
     <div className="prediction-card">
       <div className="prediction-title">Pre-match Prediction</div>
@@ -302,7 +306,7 @@ function PredictionWidget({ predictions }) {
           </div>
         ))}
       </div>
-      {p.predictions?.advice && <div className="prediction-advice">{p.predictions.advice}</div>}
+      {advice && <div className="prediction-advice">{advice}</div>}
     </div>
   );
 }
